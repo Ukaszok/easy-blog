@@ -1,0 +1,45 @@
+{% extends 'blog/base.html' %}
+
+{% block content %}
+  <article>
+    <h2>{{ post.title }}</h2>
+    <div class="meta">{{ post.published|date:"Y-m-d H:i" }} — {{ post.author }}</div>
+    <div class="body">{{ post.body|linebreaks }}</div>
+  </article>
+
+  <section class="comments">
+    <h3>Komentarze</h3>
+    {% for comment in comments %}
+      <div class="comment">
+        <p>
+          <strong>
+            {% if comment.user %}
+              {{ comment.user.username }}
+            {% else %}
+              {{ comment.name }}
+            {% endif %}
+          </strong>
+          — <span class="meta">{{ comment.created|date:"Y-m-d H:i" }}</span>
+        </p>
+        <p>{{ comment.body|linebreaks }}</p>
+      </div>
+    {% empty %}
+      <p>Brak zatwierdzonych komentarzy.</p>
+    {% endfor %}
+  </section>
+
+  <section class="add-comment">
+    <h3>Dodaj komentarz</h3>
+    {% if request.user.is_authenticated %}
+      <p>Dodajesz komentarz jako <strong>{{ request.user.username }}</strong></p>
+    {% else %}
+      <p>Maszyna anonimowa — podaj imię i e-mail</p>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Wyślij</button>
+    </form>
+  </section>
+
+{% endblock %}

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Easy Blog</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-css-reset/dist/reset.min.css">
+    <style>
+      body { font-family: Arial, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+      header { margin-bottom: 2rem; }
+      article { margin-bottom: 2rem; }
+      .meta { color: #666; font-size: 0.9rem; }
+      form input, form textarea { width: 100%; padding: 0.5rem; margin-bottom: 0.5rem }
+      .comments { margin-top: 2rem; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1><a href="/">Easy Blog</a></h1>
+      <div style="float:right;">
+        {% if request.user.is_authenticated %}
+          Zalogowany jako <strong>{{ request.user.username }}</strong>
+          —
+          <form method="post" action="{% url 'blog:logout' %}" style="display:inline; margin:0;">
+            {% csrf_token %}
+            <button type="submit" style="background:none;border:none;padding:0;color:#06c;text-decoration:underline;cursor:pointer">Wyloguj</button>
+          </form>
+        {% else %}
+          <a href="{% url 'blog:login' %}">Zaloguj</a> — <a href="{% url 'blog:register' %}">Rejestracja</a>
+        {% endif %}
+      </div>
+      <div style="clear:both"></div>
+    </header>
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>
