@@ -1,13 +1,16 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
+from django.db.models import Count, Q
 from .models import Post
 from .forms import CommentForm, RegistrationForm
 
 
 @login_required
 def post_list(request):
-    posts = Post.objects.filter(status='published')
+    posts = Post.objects.filter(status='published').annotate(
+        comment_count=Count('comments', filter=Q(comments__approved=True))
+    )
     return render(request, 'blog/list.html', {'posts': posts})
 
 
