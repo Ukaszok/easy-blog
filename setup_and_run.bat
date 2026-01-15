@@ -6,6 +6,8 @@ set ADMIN_PASS=admin
 
 setlocal enabledelayedexpansion
 
+set SEED=true
+
 set HOST=%1
 if "!HOST!"=="" set HOST=127.0.0.1
 
