@@ -9,7 +9,8 @@ from django.contrib.auth.models import User
 from blog.models import Category, Post
 from django.utils import timezone
 
-admin = User.objects.get(username='admin')
+if not User.objects.filter(username='admin').exists(): User.objects.create_superuser('admin', 'admin@example.com', '1234')
+admin, created = User.objects.get_or_create(username='admin')
 
 tech, _ = Category.objects.get_or_create(
     slug='technologia',
@@ -20,40 +21,7 @@ life, _ = Category.objects.get_or_create(
     defaults={'name': 'Życie'}
 )
 
-Post.objects.get_or_create(
-    slug='witaj-w-easy-blog',
-    defaults={
-        'title': 'Witaj w Easy Blog!',
-        'author': admin,
-        'body': 'To jest pierwszy wpis demonstracyjny w naszym systemie blogowym. Tutaj możesz publikować artykuły, zarządzać komentarzami i kategoryzować zawartość.',
-        'category': tech,
-        'status': 'published',
-        'published': timezone.now()
-    }
-)
-
-Post.objects.get_or_create(
-    slug='jak-dodawac-wpisy',
-    defaults={
-        'title': 'Jak dodawać wpisy?',
-        'author': admin,
-        'body': 'Aby dodać nowy wpis, przejdź do panelu administracyjnego (/admin/), a następnie dodaj nowy post. Każdy wpis może mieć przypisaną kategorię i jest widoczny publicznie po zatwierdzeniu statusu "published".',
-        'category': tech,
-        'status': 'published',
-        'published': timezone.now()
-    }
-)
-
-Post.objects.get_or_create(
-    slug='system-komentarzy',
-    defaults={
-        'title': 'System komentarzy',
-        'author': admin,
-        'body': 'Każdy wpis wspiera komentarze. Komentarze muszą być zatwierdzone przez administratora zanim pojawią się na stronie. Możesz zarządzać nimi w panelu admin.',
-        'category': life,
-        'status': 'published',
-        'published': timezone.now()
-    }
-)
+obj, created = Post.objects.get_or_create( slug='wweb', defaults={ 'title': 'Witaj w Easy Blog!', 'author': admin, 'body': 'To jest pierwszy wpis demonstracyjny...', 'category': tech, 'status': 'published', 'published': timezone.now() } )
+print(created, obj)
 
 print("Default data created!")
