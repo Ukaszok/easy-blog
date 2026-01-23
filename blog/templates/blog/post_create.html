@@ -1,0 +1,33 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block breadcrumbs %}
+  <nav class="forum-breadcrumbs">
+    <a href="{% url 'blog:post_list' %}">Forum</a> / 
+    <span>Nowy post</span>
+  </nav>
+{% endblock %}
+
+{% block content %}
+  <div class="form-section">
+    <h3>Utwórz nowy post</h3>
+    {% if request.user.is_superuser %}
+      <div style="margin-bottom: 1rem; color: var(--text-secondary); font-size: 0.9375rem;">
+        Jesteś administratorem - post zostanie opublikowany natychmiast.
+      </div>
+    {% else %}
+      <div style="margin-bottom: 1rem; color: var(--text-secondary); font-size: 0.9375rem;">
+        Post zostanie zapisany jako szkic i będzie wymagał akceptacji administratora przed publikacją.
+      </div>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">Utwórz post</button>
+        <a href="{% url 'blog:post_list' %}" class="btn-cancel">Anuluj</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}
+

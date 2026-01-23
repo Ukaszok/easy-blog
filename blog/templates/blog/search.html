@@ -1,0 +1,128 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block breadcrumbs %}
+  <nav class="forum-breadcrumbs">
+    <a href="{% url 'blog:post_list' %}">Forum</a> / 
+    <span>Wyszukiwanie</span>
+  </nav>
+{% endblock %}
+
+{% block content %}
+  <div class="form-section">
+    <h3>Wyszukaj posty i komentarze</h3>
+    
+    <form method="get" style="margin-bottom: 2rem;">
+      <div style="margin-bottom: 1rem;">
+        <label for="q" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Fraza kluczowa</label>
+        <input type="text" name="q" id="q" value="{{ query }}" placeholder="Szukaj w tytule, treści postów i komentarzach..." class="form-input" style="width: 100%;">
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1rem;">
+        <div>
+          <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Filtruj po tagach</label>
+          <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.75rem;">
+            {% for tag in all_tags %}
+              <label style="display: block; margin-bottom: 0.5rem; cursor: pointer;">
+                <input type="checkbox" name="tags" value="{{ tag.id }}" {% if tag.id in selected_tags %}checked{% endif %}>
+                <span style="margin-left: 0.5rem;">{{ tag.name }}</span>
+              </label>
+            {% empty %}
+              <p style="color: var(--text-secondary); font-size: 0.875rem;">Brak tagów</p>
+            {% endfor %}
+          </div>
+        </div>
+        
+        <div>
+          <label for="category" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Filtruj po kategorii</label>
+          <select name="category" id="category" class="form-input">
+            <option value="">Wszystkie kategorie</option>
+            {% for category in all_categories %}
+              <option value="{{ category.id }}" {% if selected_category == category.id %}selected{% endif %}>
+                {{ category.name }}
+              </option>
+            {% endfor %}
+          </select>
+          
+          <label for="sort" style="display: block; margin-top: 1rem; margin-bottom: 0.5rem; font-weight: 500;">Sortuj według</label>
+          <select name="sort" id="sort" class="form-input">
+            <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Data utworzenia</option>
+            <option value="likes" {% if sort_by == 'likes' %}selected{% endif %}>Liczba lajków</option>
+            <option value="comments" {% if sort_by == 'comments' %}selected{% endif %}>Liczba komentarzy</option>
+          </select>
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="submit" class="btn btn-primary">Szukaj</button>
+        <a href="{% url 'blog:search' %}" class="btn btn-outline">Wyczyść</a>
+      </div>
+    </form>
+    
+    {% if query or selected_tags or selected_category %}
+      <div style="margin-bottom: 1rem; color: var(--text-secondary);">
+        Znaleziono <strong>{{ results_count }}</strong> wyników
+      </div>
+      
+      {% if posts %}
+        <div class="forum-category-card">
+          <h2 class="category-header">Wyniki wyszukiwania</h2>
+          <div class="category-content">
+            {% for post in posts %}
+              <a href="{{ post.get_absolute_url }}" class="thread-card-link">
+                <div class="thread-card">
+                  <div class="thread-avatar">
+                    {% if post.author.profile.picture %}
+                      <img src="{{ post.author.profile.picture.url }}" alt="{{ post.author.username }}">
+                    {% else %}
+                      <div class="thread-avatar-placeholder">{{ post.author.username|first|upper }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="thread-content">
+                    <div class="thread-header">
+                      <h3 class="thread-title">{{ post.title }}</h3>
+                    </div>
+                    <div class="thread-meta">
+                      <a href="{% url 'blog:profile_detail' username=post.author.username %}" class="thread-author">
+                        {{ post.author.username }}
+                      </a>
+                      {% if post.author.is_superuser %}
+                        <span class="role-badge-small">Admin</span>
+                      {% endif %}
+                      <span class="meta">{{ post.published|date:"Y-m-d H:i" }}</span>
+                      {% if post.tags.all %}
+                        <div style="display: inline-flex; gap: 0.25rem; flex-wrap: wrap; margin-left: 0.5rem;">
+                          {% for tag in post.tags.all %}
+                            <span class="tag-badge">{{ tag.name }}</span>
+                          {% endfor %}
+                        </div>
+                      {% endif %}
+                    </div>
+                    <p class="thread-preview">{{ post.body|truncatewords:30 }}</p>
+                  </div>
+                  <div class="thread-stats">
+                    <span class="stat-badge badge">
+                      ❤️ {{ post.like_count|default:0 }}
+                    </span>
+                    <span class="stat-badge badge">
+                      💬 {{ post.comment_count|default:0 }}
+                    </span>
+                  </div>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <p>Nie znaleziono wyników dla podanych kryteriów.</p>
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="empty-state">
+        <p>Wprowadź frazę kluczową lub wybierz filtry, aby rozpocząć wyszukiwanie.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
+

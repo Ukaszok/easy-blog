@@ -1,0 +1,49 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block breadcrumbs %}
+  <nav class="forum-breadcrumbs">
+    <a href="{% url 'blog:post_list' %}">Forum</a> / 
+    <a href="{% url 'blog:admin_panel' %}">Panel administratora</a> / 
+    <a href="{% url 'blog:admin_tags' %}">Tagi</a> / 
+    <span>
+      {% if action == 'create' %}Nowy tag
+      {% elif action == 'edit' %}Edytuj tag
+      {% elif action == 'delete' %}Usuń tag
+      {% endif %}
+    </span>
+  </nav>
+{% endblock %}
+
+{% block content %}
+  <div class="form-section">
+    {% if action == 'delete' %}
+      <h3>Usuń tag</h3>
+      <p>Czy na pewno chcesz usunąć tag <strong>{{ tag.name }}</strong>?</p>
+      <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.5rem;">
+        Ten tag jest używany w {{ tag.post_set.count }} postach.
+      </p>
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Usuń</button>
+          <a href="{% url 'blog:admin_tags' %}" class="btn-cancel">Anuluj</a>
+        </div>
+      </form>
+    {% else %}
+      <h3>{% if action == 'create' %}Nowy tag{% else %}Edytuj tag{% endif %}</h3>
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-field">
+          <label for="name">Nazwa tagu</label>
+          <input type="text" name="name" id="name" class="form-input" value="{% if tag %}{{ tag.name }}{% endif %}" required>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-submit">{% if action == 'create' %}Utwórz{% else %}Zapisz{% endif %}</button>
+          <a href="{% url 'blog:admin_tags' %}" class="btn-cancel">Anuluj</a>
+        </div>
+      </form>
+    {% endif %}
+  </div>
+{% endblock %}
+

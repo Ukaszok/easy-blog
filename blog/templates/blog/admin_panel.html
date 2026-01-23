@@ -1,0 +1,46 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block breadcrumbs %}
+  <nav class="forum-breadcrumbs">
+    <a href="{% url 'blog:post_list' %}">Forum</a> / 
+    <span>Panel administratora</span>
+  </nav>
+{% endblock %}
+
+{% block content %}
+  <div class="admin-panel">
+    <h1 class="admin-panel-title">Panel Administratora</h1>
+    
+    <div class="admin-stats">
+      <a href="{% url 'blog:admin_comments' %}" class="admin-stat-card">
+        <div class="admin-stat-value">{{ pending_comments_count }}</div>
+        <div class="admin-stat-label">Komentarze do akceptacji</div>
+      </a>
+      <a href="{% url 'blog:admin_posts' %}" class="admin-stat-card">
+        <div class="admin-stat-value">{{ draft_posts_count }}</div>
+        <div class="admin-stat-label">Posty do publikacji</div>
+      </a>
+      <a href="{% url 'blog:admin_users' %}" class="admin-stat-card">
+        <div class="admin-stat-value">{{ total_users_count }}</div>
+        <div class="admin-stat-label">Użytkownicy</div>
+      </a>
+      <a href="{% url 'blog:admin_categories' %}" class="admin-stat-card">
+        <div class="admin-stat-value">{{ total_categories_count }}</div>
+        <div class="admin-stat-label">Kategorie</div>
+      </a>
+    </div>
+    
+    <div class="admin-actions">
+      <h2>Szybkie akcje</h2>
+      <div class="admin-action-links">
+        <a href="{% url 'blog:admin_comments' %}" class="btn btn-primary">Zarządzaj komentarzami</a>
+        <a href="{% url 'blog:admin_posts' %}" class="btn btn-primary">Zarządzaj postami</a>
+        <a href="{% url 'blog:admin_categories' %}" class="btn btn-primary">Zarządzaj kategoriami</a>
+        <a href="{% url 'blog:admin_tags' %}" class="btn btn-primary">Zarządzaj tagami</a>
+        <a href="{% url 'blog:admin_users' %}" class="btn btn-primary">Zarządzaj użytkownikami</a>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+

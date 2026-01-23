@@ -1,0 +1,180 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block breadcrumbs %}
+  <nav class="forum-breadcrumbs">
+    <a href="{% url 'blog:post_list' %}">Forum</a> / 
+    <a href="{% url 'blog:profile_detail' username=request.user.username %}">{{ request.user.username }}</a> /
+    Edytuj profil
+  </nav>
+{% endblock %}
+
+{% block content %}
+  <div class="profile-edit">
+    <div class="profile-edit-header">
+      <h2>Edytuj profil</h2>
+    </div>
+    
+    <div class="profile-edit-content">
+               <!-- Profile Settings Section -->
+               <div class="edit-section">
+                <h3 class="section-title">Ustawienia profilu</h3>
+                <form method="post" enctype="multipart/form-data" class="edit-section-form">
+                  {% csrf_token %}
+                  
+                  <div class="file-upload-wrapper">
+                    {% if profile.picture %}
+                      <div class="current-picture-preview">
+                        <img src="{{ profile.picture.url }}" alt="Current profile picture" id="picture-preview" class="picture-preview">
+                      </div>
+                    {% else %}
+                      <div class="picture-preview-placeholder" id="picture-preview-placeholder">
+                        <span class="preview-icon">📷</span>
+                        <span class="preview-text">Brak zdjęcia</span>
+                      </div>
+                    {% endif %}
+                    
+                    <div class="file-upload-area">
+                      <label for="id_picture" class="file-upload-button">
+                        <span class="upload-icon">📤</span>
+                        <span class="upload-text">{% if profile.picture %}Zmień zdjęcie{% else %}Wybierz zdjęcie{% endif %}</span>
+                      </label>
+                      {{ profile_form.picture }}
+                      <div class="file-name-display" id="file-name"></div>
+                    </div>
+                  </div>
+                  
+                  {% if profile_form.picture.errors %}
+                    <div class="form-error">{{ profile_form.picture.errors }}</div>
+                  {% endif %}
+                  
+                  <div class="form-field">
+                    <label for="{{ profile_form.bio.id_for_label }}">{{ profile_form.bio.label }}</label>
+                    {{ profile_form.bio }}
+                    {% if profile_form.bio.errors %}
+                      <div class="form-error">{{ profile_form.bio.errors }}</div>
+                    {% endif %}
+                  </div>
+                  
+                  <div class="form-actions">
+                    <button type="submit" name="update_profile" class="btn btn-primary">Zapisz profil</button>
+                  </div>
+                </form>
+              </div>
+
+
+      <!-- Username Section -->
+      <div class="edit-section">
+        <h3 class="section-title">Nazwa użytkownika</h3>
+        <form method="post" class="edit-section-form">
+          {% csrf_token %}
+          <div class="form-field">
+            {{ username_form.username }}
+            {% if username_form.username.errors %}
+              <div class="form-error">{{ username_form.username.errors }}</div>
+            {% endif %}
+          </div>
+          <div class="form-actions">
+            <button type="submit" name="update_username" class="btn btn-primary">Zapisz nazwę użytkownika</button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Email Section -->
+      <div class="edit-section">
+        <h3 class="section-title">Email</h3>
+        <form method="post" class="edit-section-form">
+          {% csrf_token %}
+          <div class="form-field">
+            {{ email_form.email }}
+            {% if email_form.email.errors %}
+              <div class="form-error">{{ email_form.email.errors }}</div>
+            {% endif %}
+          </div>
+          <div class="form-actions">
+            <button type="submit" name="update_email" class="btn btn-primary">Zapisz email</button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Password Change Section -->
+      <div class="edit-section">
+        <h3 class="section-title">Zmiana hasła</h3>
+        <form method="post" class="edit-section-form">
+          {% csrf_token %}
+          <div class="form-field">
+            <label for="{{ password_form.old_password.id_for_label }}">{{ password_form.old_password.label }}</label>
+            {{ password_form.old_password }}
+            {% if password_form.old_password.errors %}
+              <div class="form-error">{{ password_form.old_password.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-field">
+            <label for="{{ password_form.new_password1.id_for_label }}">{{ password_form.new_password1.label }}</label>
+            {{ password_form.new_password1 }}
+            {% if password_form.new_password1.help_text %}
+              <div class="form-help">{{ password_form.new_password1.help_text }}</div>
+            {% endif %}
+            {% if password_form.new_password1.errors %}
+              <div class="form-error">{{ password_form.new_password1.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-field">
+            <label for="{{ password_form.new_password2.id_for_label }}">{{ password_form.new_password2.label }}</label>
+            {{ password_form.new_password2 }}
+            {% if password_form.new_password2.errors %}
+              <div class="form-error">{{ password_form.new_password2.errors }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" name="change_password" class="btn btn-primary">Zmień hasło</button>
+          </div>
+        </form>
+      </div>
+      
+      
+      <div class="form-actions-footer">
+        <a href="{% url 'blog:profile_detail' username=request.user.username %}" class="btn btn-outline">Wróć do profilu</a>
+      </div>
+    </div>
+    
+    <script>
+      const pictureInput = document.getElementById('id_picture');
+      if (pictureInput) {
+        pictureInput.addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              let preview = document.getElementById('picture-preview');
+              let placeholder = document.getElementById('picture-preview-placeholder');
+              
+              if (!preview) {
+                if (placeholder) {
+                  placeholder.style.display = 'none';
+                }
+                preview = document.createElement('img');
+                preview.id = 'picture-preview';
+                preview.className = 'picture-preview';
+                preview.alt = 'Preview';
+                document.querySelector('.file-upload-wrapper').insertBefore(preview, document.querySelector('.file-upload-area'));
+              }
+              
+              preview.src = e.target.result;
+              preview.style.display = 'block';
+              
+              const fileNameDisplay = document.getElementById('file-name');
+              if (fileNameDisplay) {
+                fileNameDisplay.textContent = file.name;
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+    </script>
+  </div>
+{% endblock %}

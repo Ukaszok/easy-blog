@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Post, Category, Comment
+from .models import Post, Category, Comment, UserProfile, Like, Warning, Mute, Notification, ModerationHistory, Tag
 
 
 @admin.register(Category)
@@ -28,3 +28,51 @@ class CommentAdmin(admin.ModelAdmin):
     def approve_comments(self, request, queryset):
         queryset.update(approved=True)
     approve_comments.short_description = 'Aprove'
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'created', 'updated')
+    search_fields = ('user__username', 'user__email')
+
+
+@admin.register(Like)
+class LikeAdmin(admin.ModelAdmin):
+    list_display = ('user', 'content_type', 'object_id', 'created')
+    list_filter = ('content_type', 'created')
+    search_fields = ('user__username',)
+
+
+@admin.register(Warning)
+class WarningAdmin(admin.ModelAdmin):
+    list_display = ('user', 'admin', 'created')
+    list_filter = ('created',)
+    search_fields = ('user__username', 'admin__username', 'reason')
+
+
+@admin.register(Mute)
+class MuteAdmin(admin.ModelAdmin):
+    list_display = ('user', 'admin', 'duration_days', 'expires_at', 'created')
+    list_filter = ('created', 'expires_at')
+    search_fields = ('user__username', 'admin__username')
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'type', 'read', 'created')
+    list_filter = ('type', 'read', 'created')
+    search_fields = ('user__username',)
+
+
+@admin.register(ModerationHistory)
+class ModerationHistoryAdmin(admin.ModelAdmin):
+    list_display = ('user', 'admin', 'action_type', 'created')
+    list_filter = ('action_type', 'created')
+    search_fields = ('user__username', 'admin__username', 'details')
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug')
+    search_fields = ('name', 'slug')
+    prepopulated_fields = {'slug': ('name',)}

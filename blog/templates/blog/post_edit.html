@@ -1,0 +1,33 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block breadcrumbs %}
+  <nav class="forum-breadcrumbs">
+    <a href="{% url 'blog:post_list' %}">Forum</a> / 
+    <a href="{% url 'blog:post_detail' slug=post.slug %}">{{ post.title|truncatewords:5 }}</a> / 
+    <span>Edytuj</span>
+  </nav>
+{% endblock %}
+
+{% block content %}
+  <div class="form-section">
+    <h3>Edytuj post</h3>
+    {% if post.status == 'draft' %}
+      <div style="margin-bottom: 1rem; padding: 0.75rem; background: var(--primary-light); border-radius: var(--radius-sm); color: var(--primary); font-size: 0.875rem; font-weight: 500;">
+        ⏳ Ten post czeka na akceptację administratora
+      </div>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <div class="form-actions">
+        <button type="submit" name="save" class="btn-submit">Zapisz zmiany</button>
+        {% if request.user.is_superuser and post.status == 'draft' %}
+          <button type="submit" name="publish" class="btn btn-primary" style="margin-left: 0.75rem;">Opublikuj</button>
+        {% endif %}
+        <a href="{% url 'blog:post_detail' slug=post.slug %}" class="btn-cancel">Anuluj</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}
+

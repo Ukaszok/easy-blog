@@ -1,0 +1,46 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block breadcrumbs %}
+  <nav class="forum-breadcrumbs">
+    <a href="{% url 'blog:post_list' %}">Forum</a> / 
+    <a href="{% url 'blog:admin_panel' %}">Panel administratora</a> / 
+    <a href="{% url 'blog:admin_categories' %}">Kategorie</a> / 
+    <span>
+      {% if action == 'create' %}Nowa kategoria
+      {% elif action == 'edit' %}Edytuj kategorię
+      {% elif action == 'delete' %}Usuń kategorię
+      {% endif %}
+    </span>
+  </nav>
+{% endblock %}
+
+{% block content %}
+  <div class="form-section">
+    {% if action == 'delete' %}
+      <h3>Usuń kategorię</h3>
+      <p>Czy na pewno chcesz usunąć kategorię <strong>{{ category.name }}</strong>?</p>
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Usuń</button>
+          <a href="{% url 'blog:admin_categories' %}" class="btn-cancel">Anuluj</a>
+        </div>
+      </form>
+    {% else %}
+      <h3>{% if action == 'create' %}Nowa kategoria{% else %}Edytuj kategorię{% endif %}</h3>
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-field">
+          <label for="name">Nazwa kategorii</label>
+          <input type="text" name="name" id="name" class="form-input" value="{% if category %}{{ category.name }}{% endif %}" required>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-submit">{% if action == 'create' %}Utwórz{% else %}Zapisz{% endif %}</button>
+          <a href="{% url 'blog:admin_categories' %}" class="btn-cancel">Anuluj</a>
+        </div>
+      </form>
+    {% endif %}
+  </div>
+{% endblock %}
+

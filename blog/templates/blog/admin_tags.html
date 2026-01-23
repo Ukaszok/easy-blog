@@ -1,0 +1,62 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block breadcrumbs %}
+  <nav class="forum-breadcrumbs">
+    <a href="{% url 'blog:post_list' %}">Forum</a> / 
+    <a href="{% url 'blog:admin_panel' %}">Panel administratora</a> / 
+    <span>Tagi</span>
+  </nav>
+{% endblock %}
+
+{% block content %}
+  <div class="form-section">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <h3>Tagi</h3>
+      <a href="{% url 'blog:tag_create' %}" class="btn btn-primary">Dodaj tag</a>
+    </div>
+
+    <form method="get" style="margin-bottom: 1.5rem;">
+      <div style="display: flex; gap: 0.5rem;">
+        <input type="text" name="name" value="{{ name_filter }}" placeholder="Szukaj tagu..." class="form-input" style="flex: 1;">
+        <button type="submit" class="btn btn-outline">Szukaj</button>
+        {% if name_filter %}
+          <a href="{% url 'blog:admin_tags' %}" class="btn btn-outline">Wyczyść</a>
+        {% endif %}
+      </div>
+    </form>
+
+    {% if tags %}
+      <div class="table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Nazwa</th>
+              <th>Slug</th>
+              <th>Liczba postów</th>
+              <th>Akcje</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tag in tags %}
+              <tr>
+                <td>{{ tag.name }}</td>
+                <td>{{ tag.slug }}</td>
+                <td>{{ tag.post_set.count }}</td>
+                <td>
+                  <a href="{% url 'blog:tag_edit' tag.id %}" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Edytuj</a>
+                  <a href="{% url 'blog:tag_delete' tag.id %}" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.875rem; color: var(--danger);">Usuń</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p>Brak tagów.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
+

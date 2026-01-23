@@ -1,0 +1,94 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block breadcrumbs %}
+  <nav class="forum-breadcrumbs">
+    <a href="{% url 'blog:post_list' %}">Forum</a> / 
+    <a href="{% url 'blog:admin_panel' %}">Panel administratora</a> / 
+    <span>Użytkownicy</span>
+  </nav>
+{% endblock %}
+
+{% block content %}
+  <div class="admin-section">
+    <div class="admin-section-header">
+      <h1>Zarządzanie użytkownikami</h1>
+      <a href="{% url 'blog:admin_panel' %}" class="btn btn-outline">← Powrót do panelu</a>
+    </div>
+    
+    <div class="admin-filters">
+      <form method="get" class="admin-filter-form">
+        <input type="text" name="user" value="{{ user_filter }}" placeholder="Filtruj po nazwie użytkownika..." class="form-input" style="max-width: 300px;">
+        <select name="sort" class="form-input" style="max-width: 200px;">
+          <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Najnowsi</option>
+          <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Najstarsi</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Filtruj</button>
+        {% if user_filter %}
+          <a href="{% url 'blog:admin_users' %}" class="btn btn-outline">Wyczyść</a>
+        {% endif %}
+      </form>
+    </div>
+    
+    {% if users %}
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Nazwa użytkownika</th>
+              <th>Email</th>
+              <th>Data rejestracji</th>
+              <th>Status</th>
+              <th>Uprawnienia</th>
+              <th>Akcje</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+              <tr>
+                <td><a href="{% url 'blog:profile_detail' username=user.username %}">{{ user.username }}</a></td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.date_joined|date:"Y-m-d H:i" }}</td>
+                <td>
+                  {% if user.is_active %}
+                    <span class="badge role-badge-small">Aktywny</span>
+                  {% else %}
+                    <span class="badge" style="background: var(--text-light);">Nieaktywny</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if user.is_superuser %}
+                    <span class="badge role-badge-small">Admin</span>
+                  {% else %}
+                    <span class="badge stat-badge">User</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if user != request.user %}
+                    <form method="post" style="display: inline;">
+                      {% csrf_token %}
+                      <input type="hidden" name="user_id" value="{{ user.id }}">
+                      <button type="submit" name="toggle_superuser" class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8125rem; margin-right: 0.5rem;">
+                        {% if user.is_superuser %}Odbierz admin{% else %}Nadaj admin{% endif %}
+                      </button>
+                      <button type="submit" name="toggle_active" class="btn btn-outline" style="padding: 0.25rem 0.75rem; font-size: 0.8125rem;">
+                        {% if user.is_active %}Deaktywuj{% else %}Aktywuj{% endif %}
+                      </button>
+                    </form>
+                  {% else %}
+                    <span style="color: var(--text-light); font-size: 0.875rem;">-</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p>Brak użytkowników.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
+

@@ -1,0 +1,105 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block breadcrumbs %}
+  <nav class="forum-breadcrumbs">
+    <a href="{% url 'blog:post_list' %}">Forum</a> / Powiadomienia
+  </nav>
+{% endblock %}
+
+{% block content %}
+  <div class="admin-section">
+    <h1 style="margin-bottom: 1.5rem;">Powiadomienia {% if unread_count > 0 %}<span class="stat-badge badge" style="background: var(--primary); color: white;">{{ unread_count }} nieprzeczytanych</span>{% endif %}</h1>
+    
+    <div class="admin-filters">
+      <form method="get" class="admin-filter-form">
+        <label for="type">Filtruj według typu:</label>
+        <select name="type" id="type" onchange="this.form.submit()">
+          <option value="">Wszystkie</option>
+          <option value="post_approved" {% if type_filter == 'post_approved' %}selected{% endif %}>Post zaakceptowany</option>
+          <option value="post_rejected" {% if type_filter == 'post_rejected' %}selected{% endif %}>Post odrzucony</option>
+          <option value="comment_approved" {% if type_filter == 'comment_approved' %}selected{% endif %}>Komentarz zaakceptowany</option>
+          <option value="comment_rejected" {% if type_filter == 'comment_rejected' %}selected{% endif %}>Komentarz odrzucony</option>
+          <option value="like" {% if type_filter == 'like' %}selected{% endif %}>Lajki</option>
+          <option value="warning" {% if type_filter == 'warning' %}selected{% endif %}>Ostrzeżenia</option>
+          <option value="mute" {% if type_filter == 'mute' %}selected{% endif %}>Wyciszenia</option>
+        </select>
+      </form>
+    </div>
+    
+    {% if notifications %}
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Typ</th>
+              <th>Wiadomość</th>
+              <th>Data</th>
+              <th>Status</th>
+              <th>Akcje</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for notification in notifications %}
+              <tr {% if not notification.read %}style="background: var(--primary-light);"{% endif %}>
+                <td>
+                  {% if notification.type == 'post_approved' %}✅ Post zaakceptowany
+                  {% elif notification.type == 'post_rejected' %}❌ Post odrzucony
+                  {% elif notification.type == 'comment_approved' %}✅ Komentarz zaakceptowany
+                  {% elif notification.type == 'comment_rejected' %}❌ Komentarz odrzucony
+                  {% elif notification.type == 'like' %}❤️ Lajk
+                  {% elif notification.type == 'warning' %}⚠️ Ostrzeżenie
+                  {% elif notification.type == 'mute' %}🔇 Wyciszenie
+                  {% else %}{{ notification.type }}{% endif %}
+                </td>
+                <td>
+                  {% if notification.content_object %}
+                    {% if notification.type == 'like' %}
+                      Ktoś polubił twój {% if notification.content_type.model == 'post' %}post{% else %}komentarz{% endif %}
+                    {% elif notification.type == 'warning' %}
+                      Otrzymałeś ostrzeżenie od administratora
+                    {% elif notification.type == 'mute' %}
+                      Zostałeś wyciszony przez administratora
+                    {% else %}
+                      {{ notification.content_object }}
+                    {% endif %}
+                  {% else %}
+                    Powiadomienie
+                  {% endif %}
+                </td>
+                <td>{{ notification.created|date:"Y-m-d H:i" }}</td>
+                <td>
+                  {% if notification.read %}
+                    <span class="stat-badge badge" style="background: var(--text-light);">Przeczytane</span>
+                  {% else %}
+                    <span class="stat-badge badge" style="background: var(--primary); color: white;">Nowe</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if not notification.read %}
+                    <form method="post" action="{% url 'blog:notification_mark_read' notification.id %}" style="display: inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-primary" style="padding: 0.375rem 0.75rem; font-size: 0.875rem;">Oznacz jako przeczytane</button>
+                    </form>
+                  {% endif %}
+                  {% if notification.content_object %}
+                    {% if notification.content_type.model == 'post' %}
+                      <a href="{{ notification.content_object.get_absolute_url }}" class="btn btn-outline" style="padding: 0.375rem 0.75rem; font-size: 0.875rem; margin-left: 0.5rem;">Zobacz</a>
+                    {% elif notification.content_type.model == 'comment' %}
+                      <a href="{{ notification.content_object.post.get_absolute_url }}" class="btn btn-outline" style="padding: 0.375rem 0.75rem; font-size: 0.875rem; margin-left: 0.5rem;">Zobacz</a>
+                    {% endif %}
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p>Brak powiadomień.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
+

@@ -4,33 +4,102 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Easy Blog</title>
+    <title>{% block title %}Easy Blog{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'blog/css/style.css' %}">
   </head>
   <body>
-    <header>
-      <div class="container">
-        <h1><a href="/">Easy Blog</a></h1>
-        <div class="user-info">
+    <header class="forum-header">
+      <div class="header-container">
+        <div class="header-left">
+          <h1 class="forum-logo"><a href="{% url 'blog:post_list' %}">Easy Blog</a></h1>
+        </div>
+        <nav class="header-nav">
+          <a href="{% url 'blog:post_list' %}" class="nav-link">Forum</a>
           {% if request.user.is_authenticated %}
-            Zalogowany jako <strong>{{ request.user.username }}</strong>
-            —
-            <form method="post" action="{% url 'blog:logout' %}">
-              {% csrf_token %}
-              <button type="submit" class="logout-btn">Wyloguj</button>
-            </form>
+            <a href="{% url 'blog:profile_edit' %}" class="nav-link">Ustawienia</a>
+          {% endif %}
+        </nav>
+        <div class="header-user">
+          {% if request.user.is_authenticated %}
+            <div class="user-menu">
+              <a href="{% url 'blog:profile_detail' username=request.user.username %}" class="user-avatar-link" style="position: relative;">
+                {% if request.user.profile.picture %}
+                  <img src="{{ request.user.profile.picture.url }}" alt="{{ request.user.username }}" class="header-avatar">
+                {% else %}
+                  <div class="header-avatar header-avatar-placeholder">{{ request.user.username|first|upper }}</div>
+                {% endif %}
+                {% if unread_notifications_count > 0 %}
+                  <span class="notification-badge notification-badge-avatar">{{ unread_notifications_count }}</span>
+                {% endif %}
+              </a>
+              <div class="user-menu-dropdown">
+                <a href="{% url 'blog:profile_detail' username=request.user.username %}" class="user-menu-item">
+                  <span class="user-menu-name">{{ request.user.username }}</span>
+                  {% if request.user.is_superuser %}
+                    <span class="role-badge-small">Admin</span>
+                  {% endif %}
+                </a>
+                <a href="{% url 'blog:profile_edit' %}" class="user-menu-item">Edytuj profil</a>
+                <a href="{% url 'blog:notifications_list' %}" class="user-menu-item">
+                  📬 Powiadomienia
+                  {% if unread_notifications_count > 0 %}
+                    <span class="notification-badge notification-badge-menu">{{ unread_notifications_count }}</span>
+                  {% endif %}
+                </a>
+                <form method="post" action="{% url 'blog:logout' %}" class="user-menu-item">
+                  {% csrf_token %}
+                  <button type="submit" class="logout-btn">Wyloguj</button>
+                </form>
+              </div>
+            </div>
           {% else %}
-            <a href="{% url 'blog:login' %}">Zaloguj</a>
-            —
-            <a href="{% url 'blog:register' %}">Rejestracja</a>
+            <a href="{% url 'blog:login' %}" class="btn btn-outline">Zaloguj</a>
+            <a href="{% url 'blog:register' %}" class="btn btn-primary">Rejestracja</a>
           {% endif %}
         </div>
       </div>
     </header>
-    <div class="container">
-      <main>
+
+    <div class="forum-layout">
+      <aside class="forum-sidebar">
+        <nav class="sidebar-nav">
+          <a href="{% url 'blog:post_list' %}" class="sidebar-link">
+            <span class="sidebar-icon">🏠</span>
+            <span>Strona główna</span>
+          </a>
+          <a href="{% url 'blog:search' %}" class="sidebar-link">
+            <span class="sidebar-icon">🔍</span>
+            <span>Wyszukaj</span>
+          </a>
+          {% if request.user.is_authenticated %}
+            <a href="{% url 'blog:post_create' %}" class="sidebar-link">
+              <span class="sidebar-icon">✏️</span>
+              <span>Dodaj post</span>
+            </a>
+            <a href="{% url 'blog:profile_detail' username=request.user.username %}" class="sidebar-link">
+              <span class="sidebar-icon">👤</span>
+              <span>Mój profil</span>
+            </a>
+            {% if request.user.is_superuser %}
+              <a href="{% url 'blog:admin_panel' %}" class="sidebar-link">
+                <span class="sidebar-icon">⚙️</span>
+                <span>Panel administratora</span>
+              </a>
+            {% endif %}
+          {% endif %}
+        </nav>
+      </aside>
+
+      <main class="forum-main">
+        {% block breadcrumbs %}{% endblock %}
         {% block content %}{% endblock %}
       </main>
     </div>
+
+    <footer class="forum-footer">
+      <div class="footer-container">
+        <p>&copy; 2025 Easy Blog. Wszystkie prawa zastrzeżone.</p>
+      </div>
+    </footer>
   </body>
 </html>

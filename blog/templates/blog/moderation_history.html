@@ -1,0 +1,68 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block breadcrumbs %}
+  <nav class="forum-breadcrumbs">
+    <a href="{% url 'blog:post_list' %}">Forum</a> / 
+    <a href="{% url 'blog:profile_detail' username=profile_user.username %}">{{ profile_user.username }}</a> / Historia moderacji
+  </nav>
+{% endblock %}
+
+{% block content %}
+  <div class="admin-section">
+    <h1 style="margin-bottom: 1.5rem;">Historia moderacji: {{ profile_user.username }}</h1>
+    
+    <div class="admin-filters">
+      <form method="get" class="admin-filter-form">
+        <label for="action_type">Filtruj według typu:</label>
+        <select name="action_type" id="action_type" onchange="this.form.submit()">
+          <option value="">Wszystkie</option>
+          <option value="warning" {% if action_filter == 'warning' %}selected{% endif %}>Ostrzeżenia</option>
+          <option value="mute" {% if action_filter == 'mute' %}selected{% endif %}>Wyciszenia</option>
+          <option value="post_approved" {% if action_filter == 'post_approved' %}selected{% endif %}>Posty zaakceptowane</option>
+          <option value="post_rejected" {% if action_filter == 'post_rejected' %}selected{% endif %}>Posty odrzucone</option>
+          <option value="comment_approved" {% if action_filter == 'comment_approved' %}selected{% endif %}>Komentarze zaakceptowane</option>
+          <option value="comment_rejected" {% if action_filter == 'comment_rejected' %}selected{% endif %}>Komentarze odrzucone</option>
+        </select>
+      </form>
+    </div>
+    
+    {% if history %}
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Typ akcji</th>
+              <th>Administrator</th>
+              <th>Szczegóły</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in history %}
+              <tr>
+                <td>
+                  {% if entry.action_type == 'warning' %}⚠️ Ostrzeżenie
+                  {% elif entry.action_type == 'mute' %}🔇 Wyciszenie
+                  {% elif entry.action_type == 'post_approved' %}✅ Post zaakceptowany
+                  {% elif entry.action_type == 'post_rejected' %}❌ Post odrzucony
+                  {% elif entry.action_type == 'comment_approved' %}✅ Komentarz zaakceptowany
+                  {% elif entry.action_type == 'comment_rejected' %}❌ Komentarz odrzucony
+                  {% else %}{{ entry.action_type }}{% endif %}
+                </td>
+                <td>{% if entry.admin %}{{ entry.admin.username }}{% else %}System{% endif %}</td>
+                <td>{{ entry.details|default:"-" }}</td>
+                <td>{{ entry.created|date:"Y-m-d H:i" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p>Brak historii moderacji.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
+

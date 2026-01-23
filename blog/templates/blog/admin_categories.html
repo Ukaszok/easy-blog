@@ -1,0 +1,53 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block breadcrumbs %}
+  <nav class="forum-breadcrumbs">
+    <a href="{% url 'blog:post_list' %}">Forum</a> / 
+    <a href="{% url 'blog:admin_panel' %}">Panel administratora</a> / 
+    <span>Kategorie</span>
+  </nav>
+{% endblock %}
+
+{% block content %}
+  <div class="admin-section">
+    <div class="admin-section-header">
+      <h1>Zarządzanie kategoriami</h1>
+      <div>
+        <a href="{% url 'blog:category_create' %}" class="btn btn-primary">Dodaj kategorię</a>
+        <a href="{% url 'blog:admin_panel' %}" class="btn btn-outline">← Powrót do panelu</a>
+      </div>
+    </div>
+    
+    {% if categories %}
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Nazwa</th>
+              <th>Slug</th>
+              <th>Akcje</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for category in categories %}
+              <tr>
+                <td>{{ category.name }}</td>
+                <td>{{ category.slug }}</td>
+                <td>
+                  <a href="{% url 'blog:category_edit' category_id=category.id %}" class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8125rem; margin-right: 0.5rem; color: white;">Edytuj</a>
+                  <a href="{% url 'blog:category_delete' category_id=category.id %}" class="btn btn-outline" style="padding: 0.25rem 0.75rem; font-size: 0.8125rem; " onclick="return confirm('Czy na pewno chcesz usunąć tę kategorię?');">Usuń</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p>Brak kategorii. <a href="{% url 'blog:category_create' %}">Dodaj pierwszą kategorię</a></p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
+

@@ -1,0 +1,72 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block breadcrumbs %}
+  <nav class="forum-breadcrumbs">
+    <a href="{% url 'blog:post_list' %}">Forum</a> / 
+    <a href="{% url 'blog:admin_panel' %}">Panel administratora</a> / 
+    <span>Posty</span>
+  </nav>
+{% endblock %}
+
+{% block content %}
+  <div class="admin-section">
+    <div class="admin-section-header">
+      <h1>Posty oczekujące na publikację</h1>
+      <a href="{% url 'blog:admin_panel' %}" class="btn btn-outline">← Powrót do panelu</a>
+    </div>
+    
+    <div class="admin-filters">
+      <form method="get" class="admin-filter-form">
+        <input type="text" name="author" value="{{ author_filter }}" placeholder="Filtruj po autorze..." class="form-input" style="max-width: 300px;">
+        <select name="sort" class="form-input" style="max-width: 200px;">
+          <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Najnowsze</option>
+          <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Najstarsze</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Filtruj</button>
+        {% if author_filter %}
+          <a href="{% url 'blog:admin_posts' %}" class="btn btn-outline">Wyczyść</a>
+        {% endif %}
+      </form>
+    </div>
+    
+    {% if posts %}
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Tytuł</th>
+              <th>Autor</th>
+              <th>Kategoria</th>
+              <th>Data utworzenia</th>
+              <th>Akcje</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for post in posts %}
+              <tr>
+                <td><a href="{% url 'blog:post_detail' slug=post.slug %}">{{ post.title }}</a></td>
+                <td><a href="{% url 'blog:profile_detail' username=post.author.username %}">{{ post.author.username }}</a></td>
+                <td>{% if post.category %}{{ post.category.name }}{% else %}Brak{% endif %}</td>
+                <td>{{ post.created|date:"Y-m-d H:i" }}</td>
+                <td>
+                  <form method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="post_id" value="{{ post.id }}">
+                    <button type="submit" name="publish" class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8125rem;">Opublikuj</button>
+                    <button type="submit" name="reject" class="btn btn-outline" style="padding: 0.25rem 0.75rem; font-size: 0.8125rem;" onclick="return confirm('Czy na pewno chcesz odrzucić ten post?');">Odrzuć</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p>Brak postów oczekujących na publikację.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
+

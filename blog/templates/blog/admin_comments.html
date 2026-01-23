@@ -1,0 +1,132 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block breadcrumbs %}
+  <nav class="forum-breadcrumbs">
+    <a href="{% url 'blog:post_list' %}">Forum</a> / 
+    <a href="{% url 'blog:admin_panel' %}">Panel administratora</a> / 
+    <span>Komentarze</span>
+  </nav>
+{% endblock %}
+
+{% block content %}
+  <div class="admin-section">
+    <div class="admin-section-header">
+      <h1>Komentarze oczekujące na akceptację</h1>
+      <a href="{% url 'blog:admin_panel' %}" class="btn btn-outline">← Powrót do panelu</a>
+    </div>
+    
+    <div class="admin-filters">
+      <form method="get" class="admin-filter-form">
+        <input type="text" name="user" value="{{ user_filter }}" placeholder="Filtruj po użytkowniku..." class="form-input" style="max-width: 300px;">
+        <select name="sort" class="form-input" style="max-width: 200px;">
+          <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Najnowsze</option>
+          <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Najstarsze</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Filtruj</button>
+        {% if user_filter %}
+          <a href="{% url 'blog:admin_comments' %}" class="btn btn-outline">Wyczyść</a>
+        {% endif %}
+      </form>
+    </div>
+    
+    {% if comments %}
+      <form method="post" id="bulk-form">
+        {% csrf_token %}
+        <div class="admin-bulk-actions">
+          <button type="submit" name="approve_selected" class="btn btn-primary">Zaakceptuj zaznaczone</button>
+          <button type="button" id="reject-selected-btn" class="btn btn-outline">Odrzuć zaznaczone</button>
+        </div>
+        
+        <div class="admin-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th style="width: 40px;"><input type="checkbox" id="select-all"></th>
+                <th>Autor</th>
+                <th>Post</th>
+                <th>Treść</th>
+                <th>Data</th>
+                <th>Akcje</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for comment in comments %}
+                <tr>
+                  <td><input type="checkbox" name="comment_ids" value="{{ comment.id }}"></td>
+                  <td>
+                    {% if comment.user %}
+                      <a href="{% url 'blog:profile_detail' username=comment.user.username %}">{{ comment.user.username }}</a>
+                    {% else %}
+                      {{ comment.name }}
+                    {% endif %}
+                  </td>
+                  <td><a href="{% url 'blog:post_detail' slug=comment.post.slug %}">{{ comment.post.title|truncatewords:5 }}</a></td>
+                  <td>{{ comment.body|truncatewords:15 }}</td>
+                  <td>{{ comment.created|date:"Y-m-d H:i" }}</td>
+                  <td>
+                    <form method="post" action="{% url 'blog:comment_approve' comment.id %}" style="display: inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8125rem;">Zaakceptuj</button>
+                    </form>
+                    <form method="post" action="{% url 'blog:comment_reject' comment.id %}" style="display: inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-outline" style="padding: 0.25rem 0.75rem; font-size: 0.8125rem;" onclick="return confirm('Czy na pewno chcesz odrzucić ten komentarz?');">Odrzuć</button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </form>
+    {% else %}
+      <div class="empty-state">
+        <p>Brak komentarzy oczekujących na akceptację.</p>
+      </div>
+    {% endif %}
+  </div>
+  
+  <script>
+    document.getElementById('select-all').addEventListener('change', function() {
+      const checkboxes = document.querySelectorAll('input[name="comment_ids"]');
+      checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+    
+    document.getElementById('reject-selected-btn').addEventListener('click', function() {
+      const checkboxes = document.querySelectorAll('input[name="comment_ids"]:checked');
+      const commentIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+      
+      if (commentIds.length === 0) {
+        alert('Zaznacz przynajmniej jeden komentarz.');
+        return;
+      }
+      
+      if (!confirm('Czy na pewno chcesz odrzucić zaznaczone komentarze?')) {
+        return;
+      }
+      
+      fetch('{% url "blog:admin_comments" %}', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ comment_ids: commentIds })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          window.location.reload();
+        } else {
+          alert('Błąd: ' + (data.error || 'Nie udało się usunąć komentarzy'));
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Wystąpił błąd podczas usuwania komentarzy');
+      });
+    });
+  </script>
+{% endblock %}
+

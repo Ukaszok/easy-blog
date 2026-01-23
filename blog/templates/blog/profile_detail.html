@@ -1,0 +1,115 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block breadcrumbs %}
+  <nav class="forum-breadcrumbs">
+    <a href="{% url 'blog:post_list' %}">Forum</a> / 
+    <a href="{% url 'blog:profile_detail' username=profile_user.username %}">{{ profile_user.username }}</a>
+  </nav>
+{% endblock %}
+
+{% block content %}
+  <div class="profile-detail">
+    <div class="profile-header">
+      {% if profile.picture %}
+        <img src="{{ profile.picture.url }}" alt="{{ profile_user.username }}" class="profile-picture">
+      {% else %}
+        <div class="profile-picture-placeholder">{{ profile_user.username|first|upper }}</div>
+      {% endif %}
+      <div class="profile-info">
+        <h2>
+          {{ profile_user.username }}
+          {% if profile_user.is_superuser %}
+            <span class="role-badge">Admin</span>
+          {% endif %}
+        </h2>
+        <p class="meta">Dołączył: {{ profile_user.date_joined|date:"Y-m-d" }}</p>
+        {% if request.user == profile_user or request.user.is_superuser %}
+          <p class="meta" style="margin-top: 0.5rem;">
+            <a href="{% url 'blog:moderation_history' profile_user.username %}" style="text-decoration: none;">Historia moderacji</a>
+          </p>
+        {% endif %}
+      </div>
+      {% if request.user == profile_user %}
+        <div class="profile-actions-header">
+          <a href="{% url 'blog:profile_edit' %}" class="btn btn-outline">Edytuj profil</a>
+        </div>
+      {% elif request.user.is_superuser %}
+        <div class="profile-actions-header">
+          <form method="post" action="{% url 'blog:warning_create' profile_user.username %}" style="display: inline;">
+            {% csrf_token %}
+            <input type="text" name="reason" placeholder="Powód ostrzeżenia" required style="padding: 0.5rem; margin-right: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+            <button type="submit" class="btn btn-outline" style="background: #fbbf24; color: #92400e; border-color: #fbbf24;">⚠️ Ostrzeżenie</button>
+          </form>
+          <form method="post" action="{% url 'blog:mute_create' profile_user.username %}" style="display: inline; margin-left: 0.5rem;">
+            {% csrf_token %}
+            <select name="duration_days" required style="padding: 0.5rem; margin-right: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+              <option value="1">1 dzień</option>
+              <option value="3">3 dni</option>
+              <option value="7">7 dni</option>
+            </select>
+            <button type="submit" class="btn btn-outline" style="background: #dc2626; color: white; border-color: #dc2626;">🔇 Mute</button>
+          </form>
+        </div>
+      {% endif %}
+    </div>
+    
+    <div class="profile-stats">
+      <div class="stat-item">
+        <div class="stat-value">{{ posts_count }}</div>
+        <div class="stat-label">Postów</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">{{ comments_count }}</div>
+        <div class="stat-label">Komentarzy</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">{{ profile_user.date_joined|date:"Y" }}</div>
+        <div class="stat-label">Rok rejestracji</div>
+      </div>
+    </div>
+    
+    {% if profile.bio %}
+      <div class="profile-bio">
+        <h3>O mnie</h3>
+        <p>{{ profile.bio|linebreaks }}</p>
+      </div>
+    {% endif %}
+    
+    {% if recent_posts %}
+      <div class="profile-activity">
+        <h3>Ostatnie posty</h3>
+        <div class="profile-posts-list">
+          {% for post in recent_posts %}
+            <a href="{{ post.get_absolute_url }}" class="profile-post-item">
+              <div class="profile-post-title">{{ post.title }}</div>
+              <div class="profile-post-meta">{{ post.published|date:"Y-m-d H:i" }}</div>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+    
+    {% if recent_comments %}
+      <div class="profile-activity">
+        <h3>Ostatnie komentarze</h3>
+        <div class="profile-comments-list">
+          {% for comment in recent_comments %}
+            <a href="{{ comment.post.get_absolute_url }}" class="profile-comment-item{% if not comment.approved %} comment-unapproved{% endif %}">
+              <div class="profile-comment-content">
+                <div class="profile-comment-post">
+                  <strong>{{ comment.post.title }}</strong>
+                  {% if not comment.approved %}
+                    <span class="comment-pending-badge">⏳ Oczekuje na akceptację</span>
+                  {% endif %}
+                </div>
+                <div class="profile-comment-body">{{ comment.body|truncatewords:20 }}</div>
+                <div class="profile-comment-meta">{{ comment.created|date:"Y-m-d H:i" }}</div>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
